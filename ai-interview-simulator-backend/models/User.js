@@ -10,7 +10,7 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
+    unique: true,      
     lowercase: true,
     trim: true
   },
@@ -27,6 +27,5 @@ const UserSchema = new mongoose.Schema({
     default: Date.now
   }
 });
-
 
 module.exports = mongoose.model('User', UserSchema);

@@ -16,7 +16,7 @@ app.use(express.json()); // parse JSON bodies
 app.get('/', (req, res) => res.send('AI Interview Simulator Backend running'));
 
 app.use('/api/auth', require('./routes/auth'));
-
+app.use('/api/sessions', require('./routes/sessions'));
 // simple protected test route
 const auth = require('./middleware/authMiddleware');
 app.get('/api/protected', auth, (req, res) => {
