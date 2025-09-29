@@ -4,6 +4,7 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import SessionPage from './pages/SessionPage';
+import Premium from './pages/Premium';   
 import Nav from './components/Nav';
 
 function PrivateRoute({ children }) {
@@ -17,8 +18,30 @@ export default function App() {
       <Nav />
       <div className="max-w-3xl mx-auto p-4">
         <Routes>
-          <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/session/:id" element={<PrivateRoute><SessionPage /></PrivateRoute>} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/session/:id"
+            element={
+              <PrivateRoute>
+                <SessionPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/premium"
+            element={
+              <PrivateRoute>
+                <Premium />
+              </PrivateRoute>
+            }
+          />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
         </Routes>

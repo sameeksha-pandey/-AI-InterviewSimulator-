@@ -9,12 +9,15 @@ export default function SessionPage(){
   const [answerText, setAnswerText] = useState('');
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(()=>{
     const load = async () => {
       try {
         const res = await api.get(`/api/sessions/${id}`);
         setSession(res.data.session);
+        const me = await api.get('/api/auth/me');
+        setIsPremium(me.data.user.isPremium);
       } catch (e) { console.error(e); }
     };
     load();
@@ -33,6 +36,24 @@ export default function SessionPage(){
     } catch (e) {
       console.error(e);
       alert(e.response?.data?.message || 'Submission failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateReport = async () => {
+    try {
+      setLoading(true);
+      const res = await api.post('/api/reports/generate', { sessionId: id });
+      const url = res.data.url;
+      window.open(url, '_blank');
+    } catch (err) {
+      if (err.response?.status === 402) {
+        alert('This is a premium feature. Please buy premium first.');
+      } else {
+        alert('Failed to generate report');
+      }
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -67,6 +88,9 @@ export default function SessionPage(){
               <div>
                 <button onClick={submitAnswer} disabled={loading} className="bg-green-600 text-white px-4 py-2 rounded">
                   {loading ? 'Submitting...' : 'Submit Answer & Get AI Feedback'}
+                </button>
+                <button onClick={generateReport} className="ml-3 px-4 py-2 border rounded">
+                  {isPremium ? 'Generate & Download Report' : 'Buy Premium for Detailed Report'}
                 </button>
               </div>
 
