@@ -7,6 +7,7 @@ const MODEL = process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
 
 async function getAIFeedback(questionText, answerText) {
   if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'test') {
+    // Mock response for local dev without API key
     return {
       clarity: 7,
       correctness: 6,
@@ -22,35 +23,28 @@ async function getAIFeedback(questionText, answerText) {
   ];
 
   try {
-    // Build request headers; include OpenAI-Project if provided in env (for sk-proj keys)
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-    };
-    if (process.env.OPENAI_PROJECT_ID) {
-      headers['OpenAI-Project'] = process.env.OPENAI_PROJECT_ID;
-      console.log('Using OpenAI-Project header:', process.env.OPENAI_PROJECT_ID);
-    }
-
-    console.log('Calling OpenAI with model=', MODEL, 'promptLen=', prompt.reduce((s,m)=>s+m.content.length,0));
     const resp = await axios.post(OPENAI_URL, {
       model: MODEL,
       messages: prompt,
       temperature: 0.2,
       max_tokens: 250
-    }, { headers });
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      }
+    });
 
     const text = resp.data?.choices?.[0]?.message?.content;
-    console.log('OpenAI raw response text:', text && text.slice(0,1000)); // log first 1000 chars
-    // parse logic unchanged...
     let parsed = null;
     try {
       parsed = JSON.parse(text);
     } catch (err) {
       const match = text && text.match(/\{[\s\S]*\}/);
-      if (match) parsed = JSON.parse(match[0]);
-      else {
-        console.warn('Could not parse JSON from model output. Returning raw text.');
+      if (match) {
+        parsed = JSON.parse(match[0]);
+      } else {
+        // fallback: return raw text in comment
         return { clarity: null, correctness: null, confidence: null, tips: [], raw: text, comment: text };
       }
     }
@@ -64,18 +58,10 @@ async function getAIFeedback(questionText, answerText) {
       comment: parsed.comment || ''
     };
   } catch (err) {
-    // detailed diagnostic logging
-    console.error('OpenAI request error: name=', err.name, 'message=', err.message);
-    if (err.response) {
-      console.error('OpenAI response status:', err.response.status);
-      console.error('OpenAI response data:', JSON.stringify(err.response.data, null, 2));
-    } else {
-      console.error('No response from OpenAI (network or other error). Full err:', err);
-    }
+    console.error('OpenAI request error:', err?.response?.data || err.message);
     throw new Error('AI service error');
   }
 }
-
 
 exports.submitAnswer = async (req, res) => {
   try {
