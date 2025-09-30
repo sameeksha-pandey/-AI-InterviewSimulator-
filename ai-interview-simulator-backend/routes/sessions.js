@@ -6,22 +6,17 @@ const {
   getSession,
   joinSession,
   listUserSessions,
-  addQuestion
+  addQuestion,
+  updateSession,
+  deleteSession
 } = require('../controllers/sessionController');
 
-// create session
 router.post('/', auth, createSession);
-
-// list sessions for current user
 router.get('/', auth, listUserSessions);
-
-// get session
 router.get('/:id', auth, getSession);
-
-// join session
 router.post('/:id/join', auth, joinSession);
-
-// add question to session
 router.post('/:id/questions', auth, addQuestion);
+router.put('/:id', auth, updateSession);
+router.delete('/:id', auth, deleteSession);
 
 module.exports = router;
