@@ -1,38 +1,70 @@
 import React, { useEffect, useState } from 'react';
 import api from '../utils/api';
-import { Link } from 'react-router-dom';
+import SessionCard from '../components/SessionCard';
+import CreateSession from './CreateSession';
+import Button from '../components/ui/Button';
+import toast from 'react-hot-toast';
 
-export default function Dashboard(){
+export default function Dashboard() {
   const [sessions, setSessions] = useState([]);
-  const [err, setErr] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
+  const [editing, setEditing] = useState(null);
 
-  useEffect(()=>{
-    const load = async () => {
-      try {
-        const res = await api.get('/api/sessions');
-        setSessions(res.data.sessions || []);
-      } catch (e) {
-        setErr('Failed to load sessions');
-      }
-    };
+  const load = async () => {
+    try {
+      const res = await api.get('/api/sessions');
+      setSessions(res.data.sessions || []);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load sessions');
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const onSaved = (saved) => {
+    setShowCreate(false);
+    setEditing(null);
+    toast.success('Session saved');
     load();
-  }, []);
+  };
+
+  const onDelete = async (id) => {
+    if (!confirm('Delete this session?')) return;
+    try {
+      await api.delete(`/api/sessions/${id}`);
+      toast.success('Deleted');
+      load();
+    } catch (err) {
+      console.error(err);
+      toast.error('Delete failed');
+    }
+  };
+
+  const onEdit = (session) => {
+    setEditing(session);
+    setShowCreate(true);
+  };
 
   return (
-    <div className="mt-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Your Sessions</h2>
-        <Link to="/create" className="text-sm text-blue-600">+ Create (TODO)</Link>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold">Your Sessions</h2>
+        <Button className="btn-primary" onClick={() => { setEditing(null); setShowCreate(true); }}>
+          + Create Session
+        </Button>
       </div>
-      {err && <div className="text-red-600">{err}</div>}
-      <div className="space-y-3">
-        {sessions.length === 0 && <div className="p-4 bg-white rounded shadow">No sessions yet</div>}
+
+      {showCreate && (
+        <div className="card">
+          <CreateSession existing={editing} onSaved={onSaved} onCancel={() => { setShowCreate(false); setEditing(null); }} />
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {sessions.length === 0 && <div className="card">No sessions yet</div>}
         {sessions.map(s => (
-          <Link to={`/session/${s._id}`} key={s._id} className="block bg-white p-4 rounded shadow hover:shadow-md">
-            <div className="font-bold">{s.title}</div>
-            <div className="text-sm text-gray-600">{s.description}</div>
-            <div className="text-xs text-gray-400 mt-2">Status: {s.status}</div>
-          </Link>
+          <SessionCard key={s._id} session={s} onDelete={onDelete} onEdit={onEdit} isHost={s.host === localStorage.getItem('userId') || true} />
         ))}
       </div>
     </div>

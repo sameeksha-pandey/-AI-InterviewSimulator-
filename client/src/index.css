@@ -1,5 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body { @apply bg-gray-50 text-gray-800; }
+:root{
+  --primary: #0ea5e9; 
+  --accent: #06b6d4;
+  --muted: #6b7280;
+}
+
+html,body,#root { height:100%; }
+body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background-color: #f8fafc; color: #0f172a; }
+
+.btn {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium shadow-sm;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-ghost { @apply bg-white border border-gray-200 text-gray-700; }
+
+.card {
+  @apply bg-white rounded-2xl shadow px-6 py-5;
+}
